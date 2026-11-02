@@ -116,7 +116,7 @@ flowchart TB
 Requires Python 3.10 or newer.
 
 ```bash
-git clone https://github.com/<your-username>/called-it.git
+git clone https://github.com/thejasvini-292004/called-it.git
 cd called-it
 python3 -m venv .venv
 source .venv/bin/activate              # Windows: .venv\Scripts\activate
