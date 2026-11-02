@@ -135,31 +135,6 @@ LLM_BACKEND=hf_api HF_TOKEN=hf_yourtoken uvicorn app:app --reload
 
 Or with no model at all (verified template analysis): `LLM_BACKEND=template uvicorn app:app --reload`.
 
-## Deploy it
-
-A 3 GB model doesn't fit on free hosting tiers, so the cloud deployment runs the same app with the model served by Hugging Face (`LLM_BACKEND=hf_api`). The deployed app installs only `requirements.txt` (no PyTorch), so it builds in about a minute.
-
-### Render (free, deploys from GitHub)
-
-1. Create a free Hugging Face token: huggingface.co, then **Settings → Access Tokens → Create new token** (type "Read" is enough; make sure it can call Inference Providers).
-2. Push this repo to GitHub.
-3. On [render.com](https://render.com), sign in with GitHub and choose **New → Blueprint**, then pick this repository. Render reads `render.yaml`.
-4. When asked for `HF_TOKEN`, paste your token, then click **Apply**.
-5. After the build, open the `.onrender.com` URL. Check `/api/health`: it should report `"backend": "hf_api"`.
-
-Every push to `main` redeploys automatically. On the free plan the app sleeps after 15 minutes without visits, and the first visit after that takes about a minute to wake it.
-
-If analyses always fall back to the template, the chosen model may not be served for your account. Open the model's page on Hugging Face, check the **Inference Providers** panel, and set `HF_MODEL` on Render to a model that is served there.
-
-### Docker (any host)
-
-```bash
-docker build -t called-it .
-docker run -p 8000:8000 -e LLM_BACKEND=hf_api -e HF_TOKEN=hf_yourtoken called-it
-```
-
-To run the open-source model inside the container instead (needs about 6 GB of RAM), build with `--build-arg LOCAL_MODEL=1` and run with `-e LLM_BACKEND=local`. This also works on Hugging Face Spaces (Docker Space, free 16 GB CPU), where the app should listen on port 7860: add `-e PORT=7860`, or set `PORT=7860` in the Space's variables.
-
 ## Scoring (Match IQ)
 
 | Part | Points | Why |
