@@ -15,13 +15,9 @@ Called It is an AI-powered decision simulator for live cricket, built as a Dream
 - [The fan problem](#the-fan-problem)
 - [Workflow](#workflow)
 - [Architecture](#architecture)
-- [How a round works, request by request](#how-a-round-works-request-by-request)
-- [The AI analyst pipeline](#the-ai-analyst-pipeline)
 - [Run it locally](#run-it-locally)
 - [Deploy it](#deploy-it)
-- [Configuration](#configuration)
 - [Scoring](#scoring-match-iq)
-- [API](#api)
 - [Tests](#tests)
 - [Project layout](#project-layout)
 
@@ -115,63 +111,6 @@ flowchart TB
 | 35–42.5 s | `playing` | One more ball every 1.5 s |
 | 42.5 s on | `done` | The over's result (D14), AI analysis, Match IQ |
 
-## How a round works, request by request
-
-```mermaid
-sequenceDiagram
-    participant F as Fan's browser
-    participant S as FastAPI (app.py)
-    participant R as rounds.py
-    participant A as analyst.py
-    participant M as HF model
-
-    F->>S: GET /api/rounds/current
-    S->>R: create round, deadline = now + 30 s
-    S-->>F: state (phase open, captain hidden)
-    F->>S: POST /picks {option: kuldeep, reason: matchup}
-    S->>R: submit(): now < deadline, so on_time = true
-    S-->>F: state with your_pick
-    F->>S: POST /lock
-    S->>R: lock(), so further changes are refused (409)
-    S->>A: prefetch(kuldeep, matchup)
-    A->>M: generate in background
-    loop every 0.6 s
-        F->>S: GET /api/rounds/{id}
-        S->>R: phase(now): closed, reveal, playing, done
-        S-->>F: only what this phase allows
-    end
-    F->>S: GET /iq
-    S-->>F: 10 + 13 + 5 + 0 = 28, Match IQ 612 to 640
-    F->>S: POST /analysis
-    S->>A: analyse(): cached, or wait for the job already running
-    M-->>A: JSON draft
-    A->>A: parse, tidy citations, grounding check
-    A-->>S: AI text if checked, else verified template + note
-    S-->>F: analysis with [D7] citations
-```
-
-## The AI analyst pipeline
-
-```mermaid
-flowchart LR
-    P["Build prompt<br/>data pack + rules"] --> G["Model generates<br/>local or HF API"]
-    G --> J["Parse JSON<br/>tidy citations"]
-    J --> C{"Grounding<br/>check passes?"}
-    C -->|"yes"| OK["Fan sees the AI text<br/>with citations"]
-    C -->|"no"| T["Verified template<br/>+ note saying why"]
-    G -->|"error or bad JSON"| T
-```
-
-1. **Prompt.** The model sees only the 14-row data pack, the fan's pick and reason, and the captain's pick. It's told to cite a row ID after every fact, say "no data" when a stat is missing, never guess the unbowled over, and judge the decision rather than the result. It must return JSON with `fan`, `captain`, `tradeoff`, `outcome` and `takeaway`.
-2. **Generate.** `LocalBackend` runs Qwen2.5-1.5B-Instruct with `transformers` on the best available device (NVIDIA GPU, Apple GPU or CPU), with deterministic output. `HFApiBackend` calls a larger open model through Hugging Face Inference Providers.
-3. **Parse and tidy.** Code fences and trailing commas are tolerated. `(D3)`, `D3` and `[D4, D5]` are normalised to `[D3]`, `[D4][D5]`.
-4. **Grounding check.** A draft passes only if every number in it appears in the data pack, every citation points to a real row, and at least one citation is present. A draft claiming "23 death wickets at 6.2" is rejected.
-5. **Fallback.** With `GROUNDING_POLICY=reject` (default), a failed draft or a model error is replaced by a hand-written analysis that passes the same check, with a note naming what failed. The fan always gets something correct.
-
-Follow-up questions ("Ask the analyst") go through the same model and the same check; answers with invented figures are withheld.
-
-**Speed.** The analysis starts generating the moment a fan's call locks, during the roughly 12 seconds of reveal and over. Requests for the same pick share one job, and finished analyses are saved to `analysis_cache.json` and reloaded at startup. Run `python warm_cache.py` before a demo to pre-generate all 20 combinations.
-
 ## Run it locally
 
 Requires Python 3.10 or newer.
@@ -221,21 +160,6 @@ docker run -p 8000:8000 -e LLM_BACKEND=hf_api -e HF_TOKEN=hf_yourtoken called-it
 
 To run the open-source model inside the container instead (needs about 6 GB of RAM), build with `--build-arg LOCAL_MODEL=1` and run with `-e LLM_BACKEND=local`. This also works on Hugging Face Spaces (Docker Space, free 16 GB CPU), where the app should listen on port 7860: add `-e PORT=7860`, or set `PORT=7860` in the Space's variables.
 
-## Configuration
-
-All settings are environment variables. Never commit tokens: set them on the host.
-
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `LLM_BACKEND` | `auto` | `local`, `hf_api`, `template`, or `auto` (local if PyTorch is installed, else `hf_api` if `HF_TOKEN` is set, else template) |
-| `HF_MODEL` | Qwen2.5-1.5B-Instruct (local), Qwen2.5-7B-Instruct (API) | Any chat model on the Hugging Face Hub |
-| `HF_TOKEN` | none | Hugging Face token, needed for `hf_api` |
-| `GROUNDING_POLICY` | `reject` | `reject` replaces drafts that fail the check; `flag` shows them with a warning |
-| `ANALYSIS_MAX_TOKENS` | `450` | Upper limit on the length of an analysis |
-| `ANALYSIS_CACHE` | `analysis_cache.json` | Where finished analyses are saved |
-| `WARM_MODEL` | `1` | Load the local model at startup (`0` to load on first use) |
-| `PORT` | `8000` (Docker) | Port for the container or host |
-
 ## Scoring (Match IQ)
 
 | Part | Points | Why |
@@ -247,22 +171,6 @@ All settings are environment variables. Never commit tokens: set them on the hos
 | Result of the over | 0 | One over is mostly luck |
 
 Late or missing calls score 0. Example: Kuldeep with "Matchup edge" scores 10 + 13 + 5 + 0 = 28, taking Match IQ from 612 to 640.
-
-## API
-
-Interactive docs are served at `/docs`.
-
-| Method | Path | Purpose |
-| --- | --- | --- |
-| GET | `/api/rounds/current?fan_id=` | Current round, as this fan may see it |
-| POST | `/api/rounds` | Start a new round (replay) |
-| POST | `/api/rounds/{id}/picks` | `{fan_id, option, reason}`; the server decides if it was on time |
-| POST | `/api/rounds/{id}/lock` | Lock early |
-| POST | `/api/rounds/{id}/skip` | Demo only: close the window now for everyone |
-| POST | `/api/rounds/{id}/analysis` | AI analysis for this fan (after the over) |
-| POST | `/api/rounds/{id}/ask` | `{fan_id, question}`: follow-up question |
-| GET | `/api/rounds/{id}/iq?fan_id=` | Match IQ breakdown |
-| GET | `/api/health` | Which model backend is active |
 
 ## Tests
 
