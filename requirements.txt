@@ -1,0 +1,4 @@
+# Web app. This is all a cloud deployment needs (it uses the Hugging Face API for the model).
+fastapi>=0.110
+uvicorn>=0.29
+huggingface_hub>=0.24

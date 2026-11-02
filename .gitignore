@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Secrets: never commit tokens
+.env
+*.env
+
+# Generated at run time
+analysis_cache.json
+analysis_cache.tmp
+
+# Editor and OS clutter
+.DS_Store
+.vscode/
+.idea/
+*.bak

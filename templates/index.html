@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Called It</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Floodlit night match: phone app on the left, the machinery behind it on the right. */
+  --bg:#0C0C0F; --surface:#17171C; --surface-2:#212128; --line:#2D2D35;
+  --text:#F3F1EC; --muted:#9C9AA5; --accent:#FF7A1A; --accent-ink:#1B0C00;
+  --paper:#F1EFEA; --ink:#141418; --ink-muted:#6B6973;
+  --good:#5BAF62; --bad:#E0674F; --warn:#F2C14E;
+  --field:#163021; --field-2:#1C3D28;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"DM Sans",system-ui,-apple-system,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.45}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{text-wrap:balance;margin:0}
+.num{font-variant-numeric:tabular-nums}
+
+/* top bar */
+.topbar{display:flex;align-items:center;gap:16px;padding:14px 24px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.brand{font-family:var(--display);font-weight:800;font-size:28px;letter-spacing:.5px;text-transform:uppercase}
+.brand b{color:var(--accent)}
+.brand-sub{color:var(--muted);font-size:13px}
+.topbar .spacer{flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--muted);white-space:nowrap}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--bad);box-shadow:0 0 0 3px rgba(224,103,79,.25)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:12px;font-weight:700;font-size:14px}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-primary:disabled{background:#3a2a1f;color:#7c6a5c;cursor:not-allowed}
+.btn-ghost{border:1px solid var(--line);color:var(--text)}
+.btn-ghost:hover{border-color:#4a4a55}
+.btn-block{width:100%}
+
+/* layout */
+.wrap{display:grid;grid-template-columns:minmax(340px,420px) minmax(0,1fr);gap:32px;max-width:1240px;margin:0 auto;padding:28px 24px 48px;align-items:start}
+.device{background:#000;border-radius:46px;padding:10px;border:1px solid #34343c;box-shadow:0 30px 80px rgba(0,0,0,.6), inset 0 0 0 2px #1a1a1f;position:sticky;top:20px}
+.screen{border-radius:37px;background:var(--bg);height:min(860px,calc(100vh - 60px));min-height:640px;display:flex;flex-direction:column;overflow:hidden}
+.app-head{display:flex;align-items:center;gap:10px;padding:16px 18px 10px}
+.avatar{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12px;background:var(--surface-2);border:1px dashed #55555f}
+.app-title{flex:1;text-align:center;font-family:var(--display);font-weight:800;font-size:24px;text-transform:uppercase;letter-spacing:.5px}
+.app-title b{color:var(--accent)}
+.icon-btn{width:34px;height:34px;display:grid;place-items:center;border-radius:50%}
+.scroll{flex:1;overflow-y:auto;padding:4px 16px 20px;display:flex;flex-direction:column;gap:14px;scrollbar-width:thin}
+.nav{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);background:#101014;padding:8px 8px 14px}
+.nav button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted);padding:6px 0;border-radius:12px;position:relative}
+.nav button[aria-current="page"]{color:var(--text)}
+.nav button[aria-current="page"] svg{color:var(--accent)}
+.nav .badge{position:absolute;top:4px;right:calc(50% - 20px);width:8px;height:8px;border-radius:50%;background:var(--accent)}
+
+/* score header */
+.scorehead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px;padding:12px 6px 4px}
+.team{display:flex;align-items:center;gap:10px}
+.team.right{justify-content:flex-end;text-align:right}
+.crest{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:13px;flex:none}
+.crest.ind{background:#1C3F8F;color:#fff;box-shadow:0 0 0 2px #F09A2B}
+.crest.aus{background:#F2C230;color:#13371F;box-shadow:0 0 0 2px #13371F}
+.score{font-family:var(--display);font-weight:700;font-size:28px;line-height:1}
+.overs{font-size:12px;color:var(--muted)}
+.vs{font-family:var(--display);color:var(--muted);font-size:16px}
+.equation{text-align:center;font-size:13px;color:var(--muted);padding-bottom:4px}
+.equation strong{color:var(--text)}
+
+/* moments row */
+.moments{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.moment{flex:none;border-radius:14px;padding:9px 12px;background:var(--surface);border:1px solid var(--line);font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.moment.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px}
+.paper{background:var(--paper);color:var(--ink);border-radius:20px;padding:14px 16px}
+.paper .muted{color:var(--ink-muted)}
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.big{font-family:var(--display);font-weight:800;text-transform:uppercase;line-height:.92}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+
+.situation{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+.situation h2{font-family:var(--display);font-weight:800;font-size:34px;text-transform:uppercase;line-height:.95;margin-top:4px}
+.situation p{margin:8px 0 0;color:var(--muted);font-size:13.5px}
+.ring{position:relative;width:76px;height:76px}
+.ring svg{transform:rotate(-90deg)}
+.ring .t{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-family:var(--display);font-weight:700;font-size:26px;line-height:1}
+.ring .t small{display:block;font-family:var(--body);font-size:9.5px;font-weight:500;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:20px;padding:12px;display:flex;flex-direction:column;gap:8px;transition:border-color .15s, background .15s;position:relative}
+.opt:hover:not(:disabled){border-color:#55555f}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:linear-gradient(180deg,rgba(255,122,26,.18),rgba(255,122,26,.04))}
+.opt:disabled{cursor:default}
+.opt .who{display:flex;align-items:center;gap:10px}
+.pface{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:17px;background:linear-gradient(160deg,#2b4fae,#16295e);color:#fff;flex:none}
+.pface.spin{background:linear-gradient(160deg,#7d3fc0,#3b1d63)}
+.opt .name{font-weight:700;font-size:14px;line-height:1.15}
+.opt .role{font-size:11.5px;color:var(--muted)}
+.stats{display:flex;gap:6px;flex-wrap:wrap}
+.stat{font-size:11px;padding:3px 7px;border-radius:8px;background:var(--surface-2);color:var(--muted)}
+.stat b{color:var(--text);font-weight:700}
+.opt .tick{position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-size:12px;font-weight:800}
+
+.reasons{display:flex;flex-wrap:wrap;gap:8px}
+.reason{padding:7px 12px;border-radius:999px;border:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.reason[aria-pressed="true"]{border-color:var(--text);color:var(--text);background:var(--surface-2)}
+.reason:disabled{opacity:.6;cursor:default}
+
+.status{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:16px;background:var(--surface-2);font-size:13px}
+.status .lock{width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;flex:none}
+.status.warn{background:rgba(242,193,78,.12);color:var(--warn)}
+
+.crowd .row{display:grid;grid-template-columns:104px 1fr 38px;gap:8px;align-items:center;font-size:13px;padding:5px 0}
+.bar{height:10px;border-radius:6px;background:#dedad2;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--ink);border-radius:6px}
+.bar i.you{background:var(--accent)}
+
+.reveal{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
+.reveal .big{font-size:56px}
+.verdict{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-weight:700;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+.verdict.same{background:rgba(91,175,98,.16);color:var(--good)}
+.verdict.diff{background:rgba(255,122,26,.16);color:var(--accent)}
+.verdict.none{background:var(--surface-2);color:var(--muted)}
+.vs-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vs-pair > div{border-radius:16px;padding:10px 12px;background:var(--surface-2)}
+.vs-pair .big{font-size:30px;margin-top:2px}
+
+.balls{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.ball{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:18px;background:var(--surface-2);color:var(--muted);border:1px dashed #44444e}
+.ball.r0{background:#2a2a31;color:#cfcdd6;border-style:solid;border-color:#3a3a43}
+.ball.r1{background:var(--paper);color:var(--ink);border:0}
+.ball.r4{background:var(--warn);color:#2b2000;border:0}
+.ball.rW{background:var(--bad);color:#fff;border:0}
+.comm{font-size:13.5px;min-height:40px}
+.comm b{font-family:var(--display);font-size:16px;margin-right:6px;color:var(--accent)}
+.field{display:block;width:100%;max-width:300px;margin:0 auto}
+
+/* analyst */
+.compare-head{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.compare-head > div{border-radius:18px;padding:12px;background:var(--surface)}
+.compare-head .big{font-size:34px;margin-top:4px}
+.compare-head .you{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.metric{display:grid;grid-template-columns:96px 1fr;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid #dcd8cf}
+.metric:last-child{border-bottom:0}
+.metric .lbl{font-size:12.5px;font-weight:700}
+.metric .lbl small{display:block;font-weight:400;color:var(--ink-muted);font-size:11px}
+.mbar{display:grid;grid-template-columns:1fr 34px;gap:6px;align-items:center;font-size:12px;font-weight:700}
+.mbar + .mbar{margin-top:4px}
+.mbar .track{height:9px;background:#dedad2;border-radius:5px;overflow:hidden}
+.mbar .track i{display:block;height:100%;border-radius:5px}
+.legend{display:flex;gap:14px;font-size:11.5px;color:var(--ink-muted);margin-top:8px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+.section{display:grid;grid-template-columns:30px 1fr;gap:10px}
+.section .n{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:16px;background:var(--surface-2)}
+.section h3{font-size:15px;margin:4px 0 4px}
+.section p{margin:0;font-size:13.5px;color:#d8d6de}
+.cite{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 5px;margin:0 1px;border-radius:5px;background:#2f2f37;color:var(--warn);vertical-align:1px;cursor:help;font-variant-numeric:tabular-nums}
+.unknown{border:1px dashed var(--line);border-radius:16px;padding:12px 14px;font-size:13px;color:var(--muted)}
+.unknown strong{color:var(--text)}
+.ground{display:flex;align-items:center;gap:10px;font-size:12.5px;padding:10px 12px;border-radius:14px;background:rgba(91,175,98,.1);color:#bfe3c2}
+.ground.flag{background:rgba(242,193,78,.12);color:var(--warn)}
+.src{font-size:11.5px;color:var(--muted)}
+.skel{height:12px;border-radius:6px;background:linear-gradient(90deg,#222229,#2d2d35,#222229);background-size:200% 100%;animation:sh 1.2s linear infinite;margin:7px 0}
+@keyframes sh{to{background-position:-200% 0}}
+.ask{display:flex;gap:8px}
+.ask input{flex:1;min-width:0;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color:var(--text);font:inherit;font-size:13.5px}
+.qa{font-size:13.5px;display:flex;flex-direction:column;gap:6px}
+.qa .q{color:var(--muted)}
+.suggest{display:flex;gap:6px;flex-wrap:wrap}
+.suggest button{font-size:12px;padding:6px 10px;border-radius:999px;background:var(--surface-2);color:var(--muted)}
+
+/* IQ */
+.iq-hero{display:grid;grid-template-columns:1fr auto;align-items:end;gap:10px}
+.iq-hero .big{font-size:84px;letter-spacing:-1px}
+.delta{font-family:var(--display);font-weight:700;font-size:22px;color:var(--good)}
+.underline{height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden;margin-top:6px}
+.underline i{display:block;height:100%;background:var(--text)}
+.ptable{width:100%;border-collapse:collapse;font-size:13px}
+.ptable td{padding:8px 0;border-bottom:1px solid #dcd8cf;vertical-align:top}
+.ptable tr:last-child td{border-bottom:0}
+.ptable td.p{text-align:right;font-weight:700;white-space:nowrap;padding-left:10px;font-variant-numeric:tabular-nums}
+.ptable .why{display:block;font-size:11.5px;color:var(--ink-muted);margin-top:1px}
+.ptable tr.total td{font-weight:800;font-size:14px;border-top:2px solid var(--ink)}
+.skill{display:grid;grid-template-columns:118px 1fr 30px;gap:10px;align-items:center;font-size:13px;padding:5px 0}
+.strack{position:relative;height:10px;background:var(--surface-2);border-radius:5px}
+.strack i{position:absolute;left:0;top:0;bottom:0;background:#5d5b66;border-radius:5px}
+.strack b{position:absolute;top:0;bottom:0;background:var(--accent);border-radius:5px}
+.insight{display:grid;grid-template-columns:auto 1fr;gap:10px;font-size:13.5px;align-items:start}
+.tag{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 7px;border-radius:6px}
+.tag.s{background:rgba(91,175,98,.16);color:var(--good)}
+.tag.w{background:rgba(242,193,78,.14);color:var(--warn)}
+.hist{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.hcard{flex:none;width:170px;border-radius:18px;padding:12px;color:var(--ink);display:flex;flex-direction:column;gap:6px}
+.hcard .m{font-size:11px;font-weight:700;color:#4b4a52;text-transform:uppercase;letter-spacing:.05em}
+.hcard .q{font-weight:700;font-size:13.5px;line-height:1.2}
+.hcard .r{font-size:12px;color:#3b3a42}
+.hcard .v{margin-top:auto;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.c1{background:#DDF3C9}.c2{background:#DADCFF}.c3{background:#CFE6FF}.c4{background:#FFE1C9}.c5{background:#F2E3F7}
+
+/* side panel */
+.panel{display:flex;flex-direction:column;gap:18px;min-width:0}
+.panel h2{font-family:var(--display);font-weight:700;font-size:22px;text-transform:uppercase;letter-spacing:.3px}
+.intro{max-width:64ch}
+.intro h1{font-family:var(--display);font-weight:800;font-size:46px;text-transform:uppercase;line-height:.95}
+.intro h1 b{color:var(--accent)}
+.intro p{color:var(--muted);margin:10px 0 0}
+.steps{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.step{border-radius:16px;padding:10px;background:var(--surface);border:1px solid var(--line);font-size:12px;display:flex;flex-direction:column;gap:6px;min-height:92px}
+.step .k{font-family:var(--display);font-weight:800;font-size:20px;color:var(--muted)}
+.step.done .k{color:var(--good)}
+.step.active{border-color:var(--accent)}
+.step.active .k{color:var(--accent)}
+.step .s{color:var(--muted);font-size:11px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.log{font-size:12.5px;display:flex;flex-direction:column;gap:0;max-height:300px;overflow:auto}
+.log div{display:grid;grid-template-columns:62px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid var(--line)}
+.log time{color:var(--muted);font-variant-numeric:tabular-nums}
+.pack{width:100%;border-collapse:collapse;font-size:12.5px}
+.pack td{padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.pack td:first-child{font-weight:800;color:var(--warn);width:38px;font-variant-numeric:tabular-nums}
+.pack td:nth-child(2){color:var(--muted);width:130px}
+.pack tr.locked td{color:#6a6873}
+.rules{margin:0;padding-left:18px;font-size:13px;color:#d8d6de;display:flex;flex-direction:column;gap:6px}
+.disclaimer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+.hidden{display:none !important}
+
+@media (max-width: 980px){
+  .wrap{grid-template-columns:1fr;padding:0 0 32px;gap:24px}
+  .device{position:static;border-radius:0;padding:0;border:0;box-shadow:none}
+  .screen{border-radius:0;height:calc(100dvh - 64px);min-height:560px}
+  .panel{padding:0 16px}
+  .steps{grid-template-columns:repeat(3,1fr)}
+  .grid2{grid-template-columns:1fr}
+}
+@media (max-width: 400px){
+  .opts{grid-template-columns:1fr}
+  .situation h2{font-size:28px}
+}
+@media (prefers-reduced-motion: reduce){ *{animation:none !important;transition:none !important} }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <div class="brand">Called <b>It</b></div>
+  </div>
+  <span class="brand-sub">A Dream11 experience</span>
+  <span class="spacer"></span>
+  <span class="chip"><span class="live-dot"></span>Simulated live · IND v AUS, 3rd T20I</span>
+  <span class="chip" id="modelChip">AI: checking…</span>
+  <button class="btn btn-ghost" id="restart" type="button">Replay scenario</button>
+</header>
+
+<main class="wrap">
+  <div class="device">
+    <div class="screen">
+      <div class="app-head">
+        <span class="avatar" aria-hidden="true">TB</span>
+        <span class="app-title">Called <b>It</b></span>
+        <span class="icon-btn" aria-hidden="true">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+        </span>
+      </div>
+      <div class="scroll" id="view" aria-live="polite"></div>
+      <nav class="nav" aria-label="Sections">
+        <button type="button" data-tab="play" id="tab-play">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+          Play Captain
+        </button>
+        <button type="button" data-tab="analyst" id="tab-analyst">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>
+          AI Analyst
+        </button>
+        <button type="button" data-tab="iq" id="tab-iq">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+          My Match IQ
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <section class="panel" aria-label="How this round works">
+    <div class="intro">
+      <h1>Don't just watch the game. <b>Lead it.</b></h1>
+      <p>Every fan gets the same match situation and the same deadline. You make the call, the real captain makes theirs, the over plays out, and an open-source AI model explains both sides using only the match data on the right. Your Match IQ scores the decision, never the luck.</p>
+    </div>
+
+    <div>
+      <h2>Where this round is</h2>
+      <div class="steps" id="steps" style="margin-top:10px"></div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Match feed</h2>
+        <p class="small muted" style="margin:4px 0 8px">Events as the server records them. The server clock sets the deadline for every fan.</p>
+        <div class="log" id="log"></div>
+      </div>
+      <div class="card">
+        <h2>Fair-play rules</h2>
+        <ul class="rules" style="margin-top:10px">
+          <li>Everyone sees the same situation at the same moment.</li>
+          <li>One deadline for all: the window shuts when the bowler starts his run-up.</li>
+          <li>You can change your pick until the deadline. Whatever is selected then is locked.</li>
+          <li>Picks made after the deadline are saved for learning but never scored.</li>
+          <li>Match IQ rewards the quality of the call. The result of one over is not scored.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Data pack the AI analyst can use</h2>
+      <p class="small muted" style="margin:4px 0 8px">The model may only state facts from this table and must cite them. The server checks every figure it writes against this table before a fan sees it.</p>
+      <div style="overflow-x:auto"><table class="pack" id="pack"></table></div>
+    </div>
+
+    <p class="disclaimer">Prototype data. The fixture, scores and player statistics in this demo are illustrative sample values written for the prototype, not official records. In production the data pack would come from the live match feed and the stats provider.</p>
+  </section>
+</main>
+
+<script>
+/* Client for the Called It API. The server owns the clock, the deadline, the
+   captain's reveal, the over and the scoring; this page only renders and posts picks. */
+const HISTORY = [
+  { c:"c1", m:"IND v SA · Over 15", q:"Who bowls the 15th?", r:"You: Kuldeep · Captain: Kuldeep", v:"Called it" },
+  { c:"c2", m:"IND v SA · Over 6",  q:"Keep the slip or add a sweeper?", r:"You: Slip · Captain: Sweeper", v:"Different call" },
+  { c:"c3", m:"IND v ENG · Chase",   q:"Promote a hitter to No. 4?", r:"You: Yes · Captain: No", v:"Different call" },
+  { c:"c5", m:"IND v NZ · Over 9",   q:"Review the LBW?", r:"You: Review · Captain: Review", v:"Called it" }
+];
+let R = null, roundId = null, offset = 0, pollId = null, tickId = null;
+const UI = { tab:"play", reason:null, analysis:null, aState:"idle", qa:[], asking:false, iq:null, iqSeen:false, health:null, error:"" };
+const FAN = (() => { try { let id = localStorage.getItem("calledit_fan"); if (!id){ id = "fan_" + Math.random().toString(36).slice(2, 12); localStorage.setItem("calledit_fan", id); } return id; } catch(e){ return "fan_" + Math.random().toString(36).slice(2, 12); } })();
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const now = () => Date.now() / 1000 + offset;
+const remaining = () => R ? Math.max(0, R.deadline_at - now()) : 0;
+const O = id => R.options[id];
+const yp = () => R && R.your_pick;
+const pick = () => yp() ? yp().option : null;
+const late = () => !!(yp() && !yp().on_time);
+const lockedEarly = () => !!(yp() && yp().locked_early);
+const reasonNow = () => yp() ? yp().reason : UI.reason;
+const captain = () => R.captain_choice;
+function factOf(id){ const d = (R?.data_pack || []).find(x => x.id === id); return d ? `${d.id}: ${d.fact}` : `${id}: not available yet`; }
+function cites(text){ return esc(text).replace(/\[(D\d+)\]/g, (m, id) => `<span class="cite" title="${esc(factOf(id))}">${id}</span>`); }
+
+async function api(path, opts = {}){
+  const res = await fetch(path, { headers:{ "Content-Type":"application/json" }, ...opts, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Request failed (${res.status})`);
+  return data;
+}
+function accept(state){
+  const prevPhase = R && R.phase;
+  R = state; roundId = state.round_id; offset = state.server_now - Date.now() / 1000;
+  if (R.phase === "done" && prevPhase !== "done") onDone();
+  render();
+}
+async function poll(){
+  try { accept(await api(`/api/rounds/${roundId}?fan_id=${FAN}`)); UI.error = ""; }
+  catch(e){ UI.error = e.message; render(); }
+  if (R && R.phase === "done"){ clearInterval(pollId); pollId = null; }
+}
+function startPolling(){ if (pollId) clearInterval(pollId); pollId = setInterval(poll, 600); }
+async function boot(){
+  api("/api/health").then(h => { UI.health = h.analyst; renderChip(); render(); }).catch(() => {});
+  accept(await api(`/api/rounds/current?fan_id=${FAN}`));
+  startPolling();
+  tickId = setInterval(updateTimer, 200);
+}
+async function replay(){
+  Object.assign(UI, { tab:"play", reason:null, analysis:null, aState:"idle", qa:[], asking:false, iq:null, iqSeen:false });
+  accept(await api("/api/rounds", { method:"POST" }));
+  startPolling();
+}
+async function onDone(){
+  try { UI.iq = await api(`/api/rounds/${roundId}/iq?fan_id=${FAN}`); render(); } catch(e){}
+}
+async function choose(id){
+  try { accept(await api(`/api/rounds/${roundId}/picks`, { method:"POST", body:{ fan_id:FAN, option:id, reason: reasonNow() } })); }
+  catch(e){ UI.error = e.message; render(); }
+}
+async function setReason(k){
+  UI.reason = UI.reason === k ? null : k;
+  if (pick() && R.phase === "open" && !lockedEarly()){
+    try { accept(await api(`/api/rounds/${roundId}/picks`, { method:"POST", body:{ fan_id:FAN, option:pick(), reason:UI.reason } })); } catch(e){ UI.error = e.message; }
+  }
+  render();
+}
+async function lockNow(){ try { accept(await api(`/api/rounds/${roundId}/lock`, { method:"POST", body:{ fan_id:FAN } })); } catch(e){ UI.error = e.message; render(); } }
+async function skip(){ try { accept(await api(`/api/rounds/${roundId}/skip`, { method:"POST" })); poll(); } catch(e){ UI.error = e.message; render(); } }
+async function runAnalysis(){
+  if (!R || R.phase !== "done" || UI.aState === "loading" || UI.aState === "done") return;
+  UI.aState = "loading"; UI.aStart = Date.now(); render();
+  try { UI.analysis = await api(`/api/rounds/${roundId}/analysis`, { method:"POST", body:{ fan_id:FAN } }); UI.aState = "done"; }
+  catch(e){ UI.aState = "idle"; UI.error = e.message; }
+  render();
+}
+async function ask(q){
+  q = (q || "").trim(); if (!q || UI.asking) return;
+  UI.asking = true; UI.qa.push({ q, a:null }); render();
+  try { const r = await api(`/api/rounds/${roundId}/ask`, { method:"POST", body:{ fan_id:FAN, question:q } }); UI.qa[UI.qa.length-1].a = r.answer; UI.qa[UI.qa.length-1].src = r.source; }
+  catch(e){ UI.qa[UI.qa.length-1].a = e.message; }
+  UI.asking = false; render();
+}
+
+/* ---------- rendering ---------- */
+function renderChip(){
+  const h = UI.health, el = document.getElementById("modelChip"); if (!h) return;
+  el.textContent = h.backend === "template" ? "AI: no model set (verified template)" : `AI: ${h.model}${h.backend === "hf_api" ? " via HF API" : " (local)"}`;
+}
+function scoreHead(){
+  const s = R.score, done = R.phase === "done";
+  return `<div><div class="scorehead">
+    <div class="team"><span class="crest ind">IND</span><div><div class="score num">${s.ind}</div><div class="overs">Overs 20</div></div></div>
+    <span class="vs">VS</span>
+    <div class="team right"><div><div class="score num">${s.aus}</div><div class="overs">Overs ${s.aus_overs}</div></div><span class="crest aus">AUS</span></div>
+  </div><div class="equation">AUS need <strong>${s.need}</strong> · RRR ${s.rrr}${done ? "" : " · David 24 (12), Stoinis 18 (14)"}</div></div>`;
+}
+function ringSvg(){
+  const r = 32, c = 2 * Math.PI * r, rem = remaining(), f = rem / R.deadline_seconds;
+  return `<div class="ring" aria-label="Time left to decide"><svg width="76" height="76" viewBox="0 0 76 76"><circle cx="38" cy="38" r="${r}" stroke="#2D2D35" stroke-width="6" fill="none"/>
+    <circle id="ringArc" cx="38" cy="38" r="${r}" stroke="${rem <= 8 ? "var(--bad)" : "var(--accent)"}" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - f)}"/></svg>
+    <div class="t"><div><span id="timerNum" class="num">${Math.ceil(rem)}</span><small>${R.phase === "open" ? "sec left" : "closed"}</small></div></div></div>`;
+}
+function updateTimer(){
+  if (!R) return;
+  const el = document.getElementById("aiElapsed");
+  if (el && UI.aState === "loading") el.textContent = `· ${Math.floor((Date.now() - UI.aStart) / 1000)}s`;
+  const n = document.getElementById("timerNum"), a = document.getElementById("ringArc");
+  if (n && a){ const c = 2 * Math.PI * 32, rem = remaining(); n.textContent = Math.ceil(rem); a.setAttribute("stroke-dashoffset", c * (1 - rem / R.deadline_seconds)); a.setAttribute("stroke", rem <= 8 ? "var(--bad)" : "var(--accent)"); }
+}
+function optCard(id){
+  const o = O(id), sel = pick() === id;
+  const enabled = (R.phase === "open" && !lockedEarly()) || (R.phase !== "open" && !pick());
+  return `<button type="button" class="opt" aria-pressed="${sel}" data-pick="${id}" ${enabled ? "" : "disabled"}>
+    ${sel ? '<span class="tick" aria-hidden="true">✓</span>' : ""}
+    <div class="who"><span class="pface ${o.spin ? "spin" : ""}">${o.init}</span><div><div class="name">${o.name}</div><div class="role">${o.role}</div></div></div>
+    <div class="stats"><span class="stat"><b>${o.left}</b></span><span class="stat">Today <b class="num">${o.today}</b></span><span class="stat">Death econ <b class="num">${o.econ}</b></span></div></button>`;
+}
+function crowdCard(){
+  const c = R.crowd; if (!c) return "";
+  const rows = R.order.slice().sort((a,b) => c.simulated_pct[b] - c.simulated_pct[a]).map(id => `
+    <div class="row"><span>${O(id).short}${pick() === id ? " · you" : ""}</span><span class="bar"><i class="${pick() === id ? "you" : ""}" style="width:${c.simulated_pct[id]}%"></i></span><span class="num" style="text-align:right;font-weight:700">${c.simulated_pct[id]}%</span></div>`).join("");
+  return `<div class="paper crowd"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px"><strong>How fans called it</strong><span class="small muted num">${c.simulated_fans.toLocaleString("en-IN")} simulated${c.real_fans ? ` + ${c.real_fans} on this server` : ""}</span></div><div style="margin-top:6px">${rows}</div></div>`;
+}
+function verdictChip(){
+  if (!pick()) return `<span class="verdict none">No call</span>`;
+  if (late()) return `<span class="verdict none">Late call · not scored</span>`;
+  return pick() === captain() ? `<span class="verdict same">✓ You called it</span>` : `<span class="verdict diff">Different strategy</span>`;
+}
+function wheel(){
+  const cx = 150, cy = 150, R0 = 132, balls = R.balls;
+  const pos = (ang, d) => { const a = ang * Math.PI / 180; return [cx + Math.sin(a) * R0 * d, (cy + 12) - Math.cos(a) * R0 * d]; };
+  let lines = "";
+  balls.forEach(b => { if (b.angle == null) return; const [x, y] = pos(b.angle, b.dist); const col = b.runs === 4 ? "#F2C14E" : "#F1EFEA";
+    lines += `<line x1="${cx}" y1="${cy + 12}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="${col}" stroke-width="2.5" stroke-linecap="round"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" fill="${col}"/>`; });
+  const wk = balls.some(b => b.runs === "W") ? `<circle cx="${cx}" cy="${cy + 26}" r="9" fill="#E0674F"/><text x="${cx}" y="${cy + 30}" text-anchor="middle" font-size="11" font-weight="800" fill="#fff" font-family="Barlow Condensed, sans-serif">W</text>` : "";
+  const lbl = [["Long off",338],["Long on",22],["Sq leg",95],["Fine leg",160],["Third man",200],["Point",265]];
+  return `<svg class="field" viewBox="0 0 300 300" role="img" aria-label="Where the runs went in over 18">
+    <circle cx="150" cy="150" r="146" fill="var(--field)" stroke="#2c5a3a"/><circle cx="150" cy="150" r="80" fill="var(--field-2)" stroke="#2c5a3a" stroke-dasharray="4 4"/>
+    <rect x="141" y="122" width="18" height="56" rx="2" fill="#c9b98f"/>
+    ${lbl.map(([t, a]) => { const [x, y] = pos(a, 1.03); return `<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" text-anchor="middle" font-size="10" fill="#8fb39a" font-family="DM Sans, system-ui, sans-serif">${t}</text>`; }).join("")}
+    ${lines}${wk}</svg>`;
+}
+const ballCls = r => r === "W" ? "rW" : "r" + r;
+
+function viewPlay(){
+  const ph = R.phase;
+  let h = scoreHead();
+  h += `<div class="moments" aria-label="Moment type"><span class="moment on">● Death over</span><span class="moment">Tough chase</span><span class="moment">Wicket</span><span class="moment">Powerplay</span><span class="moment">DRS</span></div>`;
+  if (UI.error) h += `<div class="status warn">${esc(UI.error)}</div>`;
+  if (ph === "open" || ph === "closed"){
+    h += `<div class="card situation"><div><div class="eyebrow">Your call, captain · Over 18</div><h2>${esc(R.scenario.title)}</h2><p>${esc(R.scenario.summary)}</p></div>${ringSvg()}</div>`;
+    h += `<div class="opts">${R.order.map(optCard).join("")}</div>`;
+    const canReason = ph === "open" && !lockedEarly();
+    h += `<div><div class="eyebrow" style="margin-bottom:8px">Why this call? <span style="text-transform:none;letter-spacing:0;font-weight:400">(optional, earns points if the data backs it)</span></div>
+      <div class="reasons">${Object.entries(R.reasons).map(([k, v]) => `<button type="button" class="reason" data-reason="${k}" aria-pressed="${reasonNow() === k}" ${canReason ? "" : "disabled"}>${v}</button>`).join("")}</div></div>`;
+    if (ph === "open"){
+      if (lockedEarly()) h += `<div class="status"><span class="lock">🔒</span><div><strong>Locked: ${O(pick()).short}</strong><div class="small muted">Locked ${yp().locked_with_seconds_left}s before the deadline. Waiting for the run-up.</div></div></div>`;
+      else {
+        h += `<button type="button" class="btn btn-primary btn-block" id="lockBtn" ${pick() ? "" : "disabled"}>${pick() ? "Lock " + O(pick()).short + " now" : "Pick a bowler to lock your call"}</button>`;
+        h += `<p class="small muted" style="margin:-6px 0 0;text-align:center">Your pick is saved on the server. It locks automatically at the deadline.</p>`;
+      }
+      h += `<button type="button" class="btn btn-ghost btn-block" id="ffBtn">Skip to the deadline (demo, affects everyone in this round)</button>`;
+    } else {
+      h += pick() ? `<div class="status"><span class="lock">🔒</span><div><strong>Locked: ${O(pick()).short}</strong><div class="small muted">Window closed for everyone. Waiting for the captain…</div></div></div>`
+                  : `<div class="status warn">Window closed with no call. You can still pick to see the comparison, but it won't be scored.</div>`;
+      h += crowdCard();
+    }
+  }
+  if (ph === "reveal" || ph === "playing" || ph === "done"){
+    if (!pick() && ph === "reveal") h += `<div class="status warn">You missed the window. Pick now to compare, unscored.</div><div class="opts">${R.order.map(optCard).join("")}</div>`;
+    h += `<div class="card"><div class="reveal">${verdictChip()}<div class="eyebrow">The captain's call is in</div></div>
+      <div class="vs-pair" style="margin-top:12px">
+        <div><div class="eyebrow">You</div><div class="big" style="color:var(--accent)">${pick() ? O(pick()).short : "—"}</div><div class="small muted">${pick() ? (reasonNow() ? R.reasons[reasonNow()] : "No reason given") : "No call"}</div></div>
+        <div><div class="eyebrow">Captain</div><div class="big">${O(captain()).short}</div><div class="small muted">Reason not in the feed</div></div>
+      </div></div>`;
+    if (ph === "reveal") h += crowdCard();
+  }
+  if (ph === "playing" || ph === "done"){
+    const b = R.balls, last = b[b.length - 1];
+    const runs = b.reduce((a, x) => a + (x.runs === "W" ? 0 : x.runs), 0), wk = b.filter(x => x.runs === "W").length;
+    h += `<div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><div class="eyebrow">Over 18 · ${O(captain()).short}</div><span class="num" style="font-family:var(--display);font-weight:700;font-size:20px">${runs} runs · ${wk} wkt</span></div>
+      <div class="balls">${[0,1,2,3,4,5].map(i => i < b.length ? `<span class="ball ${ballCls(b[i].runs)}">${b[i].runs === 0 ? "•" : b[i].runs}</span>` : `<span class="ball"></span>`).join("")}</div>
+      <div class="comm">${last ? `<b>${last.ball}</b>${esc(last.text)}` : '<span class="muted">Bumrah marks his run-up…</span>'}</div>${wheel()}</div>`;
+  }
+  if (ph === "done"){
+    h += `<div class="paper"><strong>Over 18 done.</strong> 6 runs and Stoinis bowled. AUS need 26 off 12.</div>
+      <button type="button" class="btn btn-primary btn-block" data-go="analyst" data-run="1">Get the AI analysis</button>
+      <button type="button" class="btn btn-ghost btn-block" data-go="iq">See my Match IQ</button>`;
+  }
+  return h;
+}
+function metricChart(){
+  const cap = captain(), A = (!pick() || pick() === cap) ? "kuldeep" : pick();
+  const left = O(A), right = O(cap);
+  const label = (!pick() || pick() === cap) ? `${left.short} (main alternative)` : `${left.short} (you)`;
+  const rows = [["Death economy","runs per over · lower is better","econ",12],["Dot balls","% of balls · higher is better","dot",50],["Boundary balls","% of balls · lower is better","bdry",25]];
+  return `<div class="paper"><strong>The numbers behind each option</strong><div class="small muted">Overs 16-20 · data pack D3–D6</div>
+    <div style="margin-top:6px">${rows.map(([n, s, k, max]) => `<div class="metric"><div class="lbl">${n}<small>${s}</small></div><div>
+      <div class="mbar"><span class="track"><i style="width:${left[k] / max * 100}%;background:var(--accent)"></i></span><span class="num">${left[k]}${k === "econ" ? "" : "%"}</span></div>
+      <div class="mbar"><span class="track"><i style="width:${right[k] / max * 100}%;background:var(--ink)"></i></span><span class="num">${right[k]}${k === "econ" ? "" : "%"}</span></div></div></div>`).join("")}</div>
+    <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>${label}</span><span><i class="sw" style="background:var(--ink)"></i>${right.short} (captain)</span></div></div>`;
+}
+function viewAnalyst(){
+  if (R.phase !== "done"){
+    return `<div class="card"><div class="eyebrow">AI Match Analyst</div><h2 class="big" style="font-size:38px;margin-top:6px">Unlocks after the over</h2>
+      <p class="muted">The analyst compares your call with the captain's once the over has been bowled, so it can talk about what actually happened.</p>
+      <button type="button" class="btn btn-ghost btn-block" data-go="play">Back to the match</button></div>`;
+  }
+  let h = `<div class="compare-head">
+    <div class="you"><div class="eyebrow">Your call</div><div class="big" style="color:var(--accent)">${pick() ? O(pick()).short : "No call"}</div><div class="small muted">${pick() ? (reasonNow() ? R.reasons[reasonNow()] : "No reason given") : "Missed the window"}${late() ? " · late" : ""}</div></div>
+    <div><div class="eyebrow">Captain's call</div><div class="big">${O(captain()).short}</div><div class="small muted">6 runs, 1 wicket</div></div></div>`;
+  h += metricChart();
+  const model = UI.health && UI.health.model;
+  if (UI.aState === "idle") return h + `<div class="card"><p style="margin:0 0 12px">${model ? `An open-source model (${esc(model)}) reads` : "The analyst reads"} the data pack and explains both sides: your reasoning, the captain's, the trade-off, and what the over tells us.</p>
+      <button type="button" class="btn btn-primary btn-block" id="runAI">Explain both calls</button></div>`;
+  if (UI.aState === "loading") return h + `<div class="card"><div class="eyebrow">${model ? esc(model) + " is finishing your analysis…" : "Reading the data pack…"} <span id="aiElapsed" class="num"></span></div>${"<div class='skel'></div>".repeat(7)}<p class="small muted">It started writing the moment your call locked, so most of the work is usually done by now.</p></div>`;
+  const a = UI.analysis, c = a.check;
+  const sec = (n, t, body) => `<div class="section"><span class="n">${n}</span><div><h3>${t}</h3><p>${cites(body)}</p></div></div>`;
+  const youTitle = !pick() ? "Your call" : pick() === captain() ? "Why you both chose Bumrah" : `Your reasoning: ${O(pick()).short}`;
+  h += `<div class="card" style="display:flex;flex-direction:column;gap:16px">${sec(1, youTitle, a.fan)}${sec(2, "The captain's reasoning: Bumrah", a.captain)}${sec(3, "The trade-off", a.tradeoff)}${sec(4, "What happened", a.outcome)}</div>`;
+  h += `<div class="unknown"><strong>What we can't know:</strong> how ${pick() && pick() !== captain() ? O(pick()).short + "'s" : "the alternative"} over would have gone. It was never bowled, so it isn't compared on result.</div>`;
+  if (a.takeaway) h += `<div class="paper"><div class="eyebrow" style="color:var(--ink-muted)">Takeaway</div><div style="font-weight:700;margin-top:4px">${cites(a.takeaway)}</div></div>`;
+  h += `<div class="ground ${c.passed ? "" : "flag"}">${c.passed ? "✓" : "!"} <span>${c.passed ? `Grounding check passed: all ${c.figures} figures appear in the data pack, with ${c.citations} citations.` : `Grounding check: ${c.unknown_figures.length ? "figures " + c.unknown_figures.join(", ") + " are not in the pack" : ""}${c.bad_citations.length ? " · unknown citations " + c.bad_citations.join(", ") : ""}${!c.citations ? " · no citations" : ""}.`}</span></div>`;
+  const speed = a.cached ? "Ready instantly: this pick was analysed before." : a.prepared_early ? `Prepared while the over was bowled; you waited ${a.waited}s.` : `Written in ${a.seconds}s.`;
+  h += `<div class="src">${a.source === "llm" ? `Written by ${esc(a.model)}, an open-source model from Hugging Face. ${speed} Hover a citation to see the fact.` : esc(a.note) + " Hover a citation to see the fact."}</div>`;
+  if (UI.health && UI.health.backend !== "template"){
+    h += `<div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="eyebrow">Ask the analyst</div>
+      ${UI.qa.map(x => `<div class="qa"><div class="q">You: ${esc(x.q)}</div><div>${x.a ? cites(x.a) : "<div class='skel'></div><div class='skel'></div>"}</div></div>`).join("")}
+      <div class="suggest">${["Why not save Bumrah for the 20th?","How does Stoinis play spin?","Who should bowl the 19th now?"].map(q => `<button type="button" data-q="${esc(q)}">${q}</button>`).join("")}</div>
+      <form class="ask" id="askForm"><input id="askInput" placeholder="Ask about this decision" aria-label="Ask the analyst" maxlength="300" ${UI.asking ? "disabled" : ""}><button class="btn btn-primary" ${UI.asking ? "disabled" : ""}>Ask</button></form></div>`;
+  }
+  return h + `<button type="button" class="btn btn-ghost btn-block" data-go="iq">See how this changed my Match IQ</button>`;
+}
+function viewIQ(){
+  const done = R.phase === "done", q = UI.iq;
+  const iq = done && q ? q.after : 612, delta = done && q ? q.score.total : 0;
+  let h = `<div class="card"><div class="eyebrow">My Match IQ</div>
+    <div class="iq-hero"><div class="big num">${iq}</div>${delta ? `<div class="delta num">+${delta}</div>` : ""}</div>
+    <div class="underline"><i style="width:${iq / 10}%"></i></div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px" class="small muted"><span>Top 18% of fans this season (sample)</span><span class="num">/ 1000</span></div></div>`;
+  h += `<div class="paper"><strong>This decision · Over 18</strong>`;
+  if (!done || !q) h += `<p class="muted small" style="margin:6px 0 0">Scores once the over has been bowled.</p>`;
+  else if (!q.score.rows.length) h += `<p class="small" style="margin:6px 0 0">${esc(q.score.note)}</p>`;
+  else h += `<table class="ptable" style="margin-top:6px">${q.score.rows.map(r => `<tr><td>${r.label}<span class="why">${cites(r.why).replace(/<span class="cite"/g, '<span class="cite" style="background:#e2ded5;color:#7a5b00"')}</span></td><td class="p">${r.points === null ? "—" : `+${r.points}<span class="muted" style="font-weight:400">/${r.max}</span>`}</td></tr>`).join("")}
+      <tr class="total"><td>Points this call</td><td class="p">+${q.score.total}<span class="muted" style="font-weight:400">/${q.max_points}</span></td></tr></table>`;
+  h += `</div>`;
+  const before = q ? q.skills_before : { death:58, matchup:71, resource:44, pressure:62 }, after = q ? q.skills_after : before;
+  const labels = q ? q.skill_labels : { death:"Death-over reads", matchup:"Matchup reading", resource:"Resource planning", pressure:"Pressure calls" };
+  h += `<div class="card"><div class="eyebrow" style="margin-bottom:8px">Decision profile</div>
+    ${Object.keys(before).map(k => `<div class="skill"><span>${labels[k]}</span><span class="strack"><b style="width:${after[k]}%"></b><i style="width:${before[k]}%"></i></span><span class="num" style="text-align:right;font-weight:700">${after[k]}</span></div>`).join("")}
+    <div class="small muted" style="margin-top:6px"><i class="sw" style="background:#5d5b66;vertical-align:-1px"></i> before this call &nbsp; <i class="sw" style="background:var(--accent);vertical-align:-1px"></i> after</div></div>`;
+  if (q) h += `<div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="eyebrow">Your decision style</div>${q.insights.map(i => `<div class="insight"><span class="tag ${i.kind === "strength" ? "s" : "w"}">${i.kind === "strength" ? "Strength" : "Watch"}</span><span>${esc(i.text)}</span></div>`).join("")}</div>`;
+  const mine = done && pick() ? [{ c:"c4", m:"IND v AUS · Over 18", q:"Who bowls the 18th?", r:`You: ${O(pick()).short} · Captain: ${O(captain()).short}`, v: late() ? "Late · not scored" : pick() === captain() ? "Called it" : "Different call" }] : [];
+  h += `<div><div class="eyebrow" style="margin-bottom:8px">Recent calls</div><div class="hist">${mine.concat(HISTORY).map(x => `
+    <div class="hcard ${x.c}"><span class="m">${x.m}</span><span class="q">${x.q}</span><span class="r">${x.r}</span><span class="v">${x.v}</span></div>`).join("")}</div>
+    <p class="small muted" style="margin:8px 0 0">Earlier calls are sample history for the prototype.</p></div>`;
+  return h;
+}
+function renderPanel(){
+  const st = [["Scenario","Over 18 opens for everyone"],["Your call","Locked at the deadline"],["Captain","Real decision revealed"],["The over","Six balls recorded"],["AI analysis","Both sides explained"],["Match IQ","Decision scored"]];
+  const ph = R.phase;
+  const at = { open: lockedEarly() ? 1 : 0, closed:1, reveal:2, playing:3, done: UI.iqSeen ? 5 : UI.aState !== "idle" ? 4 : 3 }[ph];
+  document.getElementById("steps").innerHTML = st.map(([k, s], i) => { const d = i < at || (ph === "done" && UI.iqSeen && i < 6 && i !== at); return `<div class="step ${d ? "done" : ""} ${i === at ? "active" : ""}"><span class="k">${d ? "✓" : i + 1}</span><strong>${k}</strong><span class="s">${s}</span></div>`; }).join("");
+  document.getElementById("log").innerHTML = R.events.slice().reverse().map(e => `<div><time>${new Date(e.t * 1000).toTimeString().slice(0,8)}</time><span>${esc(e.msg)}</span></div>`).join("");
+  const shown = new Set(R.data_pack.map(d => d.id));
+  document.getElementById("pack").innerHTML = R.data_pack.map(d => `<tr><td>${d.id}</td><td>${esc(d.label)}</td><td>${esc(d.fact)}</td></tr>`).join("") +
+    (shown.has("D14") ? "" : `<tr class="locked"><td>D14</td><td>Over 18 result</td><td>Added by the server when the over is complete.</td></tr>`);
+}
+function render(){
+  if (!R) return;
+  if (UI.tab === "iq" && R.phase === "done") UI.iqSeen = true;
+  const v = document.getElementById("view"), prevTab = v.dataset.tab;
+  v.innerHTML = UI.tab === "play" ? viewPlay() : UI.tab === "analyst" ? viewAnalyst() : viewIQ();
+  if (prevTab !== UI.tab){ v.scrollTop = 0; v.dataset.tab = UI.tab; }
+  ["play","analyst","iq"].forEach(t => {
+    const b = document.getElementById("tab-" + t);
+    if (UI.tab === t) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    const dot = b.querySelector(".badge");
+    const want = R.phase === "done" && UI.tab !== t && ((t === "analyst" && UI.aState !== "done") || (t === "iq" && !UI.iqSeen));
+    if (want && !dot){ const s = document.createElement("span"); s.className = "badge"; b.appendChild(s); }
+    if (!want && dot) dot.remove();
+  });
+  renderPanel();
+}
+
+document.getElementById("view").addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.pick) choose(t.dataset.pick);
+  else if (t.dataset.reason) setReason(t.dataset.reason);
+  else if (t.id === "lockBtn") lockNow();
+  else if (t.id === "ffBtn") skip();
+  else if (t.id === "runAI") runAnalysis();
+  else if (t.dataset.q) ask(t.dataset.q);
+  else if (t.dataset.go){ UI.tab = t.dataset.go; render(); if (t.dataset.run) runAnalysis(); }
+});
+document.getElementById("view").addEventListener("submit", e => { e.preventDefault(); ask(document.getElementById("askInput").value); });
+document.querySelector(".nav").addEventListener("click", e => { const b = e.target.closest("button[data-tab]"); if (!b) return; UI.tab = b.dataset.tab; render(); });
+document.getElementById("restart").addEventListener("click", replay);
+boot().catch(e => { document.getElementById("view").innerHTML = `<div class="status warn">Couldn't reach the server: ${esc(e.message)}</div>`; });
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+# One-click deploy on Render (https://render.com): New > Blueprint > pick this repo.
+services:
+  - type: web
+    name: called-it
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: LLM_BACKEND
+        value: hf_api
+      - key: HF_MODEL
+        value: Qwen/Qwen2.5-7B-Instruct
+      - key: GROUNDING_POLICY
+        value: reject
+      - key: HF_TOKEN
+        sync: false          # Render asks you for this value; it is never stored in the repo
