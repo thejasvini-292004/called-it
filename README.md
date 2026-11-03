@@ -57,38 +57,6 @@ Four rules shape every step:
 3. **The AI only says what the data supports.** Every number it writes is checked against the data pack before a fan sees it.
 4. **Admit what is unknown.** The bowler who didn't bowl never had an over, so the AI never guesses how it would have gone.
 
-## Architecture
-
-```mermaid
-flowchart TB
-    UI["Fan's browser: templates/index.html<br/>renders the 6 steps, polls state every 0.6 s"]
-
-    subgraph Server["FastAPI server: app.py"]
-        direction TB
-        API["Routes + request validation<br/>server clock decides what each fan sees"]
-        RD["rounds.py<br/>shared deadline, picks,<br/>reveal timeline"]
-        SG["scoring.py<br/>Match IQ,<br/>skill profile"]
-        AN["analyst.py<br/>prompt, grounding check,<br/>fallback, cache"]
-        SC["scenario.py<br/>options, the over, 14-row data pack"]
-        API --> RD
-        API --> SG
-        API --> AN
-        RD --> SC
-        AN --> SC
-    end
-
-    UI <-->|"HTTP + JSON"| API
-    AN <--> CACHE[("analysis_cache.json")]
-
-    subgraph Model["Open-source model (pick one with LLM_BACKEND)"]
-        direction LR
-        LOCAL["local: Qwen2.5-1.5B-Instruct<br/>via transformers"]
-        HF["hf_api: Qwen2.5-7B-Instruct<br/>Hugging Face Inference API"]
-    end
-
-    AN --> LOCAL
-    AN --> HF
-```
 
 ## Run it locally
 
