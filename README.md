@@ -90,27 +90,6 @@ flowchart TB
     AN --> HF
 ```
 
-**The server decides, the browser displays.** Time, the pick rules, the captain's choice, scoring and the AI all live on the server. The browser only sends what the fan did and draws what comes back.
-
-| Module | Its one job |
-| --- | --- |
-| `app.py` | HTTP routes; wires the modules together; starts loading the model at startup |
-| `called_it/scenario.py` | The match situation, four bowlers, six balls and the 14-row data pack (D1–D14) |
-| `called_it/rounds.py` | Rounds, the shared deadline, picks, locks, and which facts each fan may see when |
-| `called_it/scoring.py` | Match IQ points, skill profile, strengths and watch-outs |
-| `called_it/analyst.py` | Model backends, prompts, citation tidying, grounding check, fallback, prefetch and cache |
-| `templates/index.html` | Everything the fan sees |
-
-**Phases are computed, never stored.** A round holds a single `deadline_at` timestamp. Each request compares the server's clock with it to work out the phase, so there is no background timer to fail and every fan sees the same phase at the same moment.
-
-| Server time | Phase | What the fan may see |
-| --- | --- | --- |
-| 0–30 s | `open` | Scenario, options, countdown. `captain_choice` is `null` |
-| 30–32 s | `closed` | Their locked call and the fan split |
-| 32–35 s | `reveal` | The captain's choice, for the first time |
-| 35–42.5 s | `playing` | One more ball every 1.5 s |
-| 42.5 s on | `done` | The over's result (D14), AI analysis, Match IQ |
-
 ## Run it locally
 
 Requires Python 3.10 or newer.
